@@ -13,23 +13,42 @@ def send_webhook():
 	try:
 		response = requests.post(webhook, json=payload)
 		response.raise_for_status()
-		print("Discord webhook message sent")
+		print("Success webhook message sent")
 		sys.stdout.flush()
 	except Exception as e:
 		print(f"Error sending webhook: {e}")
+		sys.stdout.flush()
+def error_webhook(error=None):
+	message = "Error with monitor "
+	if error:
+		message += f"\nError details: {str(error)}"
+	payload = {
+		"content": message
+	}
+	try:
+		response = requests.post(webhook, json=payload)
+		response.raise_for_status()
+		print("Error webhook message sent")
+		sys.stdout.flush()
+	except Exception as e:
+		print(f"Error sending error webhook: {e}")
 		sys.stdout.flush()
 
 target_element_text = 'NYE 30th'
 
 delay = 1800
 while True:
-	response = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"})
-	if not re.search(target_element_text, response.text):
-		print("Element is Missing Check For Changes")
+	try:
+		response = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"})
+		if not re.search(target_element_text, response.text):
+			print("Element is Missing Check For Changes")
+			sys.stdout.flush()
+			send_webhook()
+		else:
+			print("Element Present")
+			sys.stdout.flush()
+		time.sleep(delay)
+	except Exception as e:
+		print(f"Error: {e}")
+		error_webhook(error=e)
 		sys.stdout.flush()
-		send_webhook()
-	else:
-		print("Element Present")
-		sys.stdout.flush()
-	time.sleep(delay)
-
